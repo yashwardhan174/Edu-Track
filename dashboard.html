@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EduTrack Dashboard</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+        h2 { margin-top: 40px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #333; color: white; }
+        .chart-container { width: 600px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <h1>EduTrack Real-Time Dashboard</h1>
+
+    <h2>Latest Grades</h2>
+    <table id="gradesTable">
+        <thead>
+            <tr><th>Student ID</th><th>Course ID</th><th>Grade</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Latest Attendance</h2>
+    <table id="attendanceTable">
+        <thead>
+            <tr><th>Student ID</th><th>Course ID</th><th>Status</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="chart-container">
+        <h2>Grade Distribution</h2>
+        <canvas id="gradeChart"></canvas>
+    </div>
+
+    <script>
+        const socket = io('http://localhost:3000');
+
+        const gradesTableBody = document.querySelector('#gradesTable tbody');
+        const attendanceTableBody = document.querySelector('#attendanceTable tbody');
+
+        const gradeData = {};
+        const gradeChartCtx = document.getElementById('gradeChart').getContext('2d');
+        const gradeChart = new Chart(gradeChartCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Number of Grades',
+                    data: [],
+                    backgroundColor: 'teal'
+                }]
+            }
+        });
+
+        socket.on('gradeAdded', data => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${data.student_id}</td><td>${data.course_id}</td><td>${data.grade}</td>`;
+            gradesTableBody.appendChild(row);
+
+            gradeData[data.grade] = (gradeData[data.grade] || 0) + 1;
+            updateChart();
+        });
+
+        socket.on('attendanceMarked', data => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${data.student_id}</td><td>${data.course_id}</td><td>${data.status}</td>`;
+            attendanceTableBody.appendChild(row);
+        });
+
+        function updateChart() {
+            gradeChart.data.labels = Object.keys(gradeData);
+            gradeChart.data.datasets[0].data = Object.values(gradeData);
+            gradeChart.update();
+        }
+    </script>
+</body>
+</html>
