@@ -1,0 +1,99 @@
+-- Drop tables if they exist
+DROP TABLE IF EXISTS attendance;
+DROP TABLE IF EXISTS grades;
+DROP TABLE IF EXISTS enrollments;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS faculty;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS users;
+
+-- Create tables
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('student', 'faculty', 'admin') NOT NULL
+);
+
+CREATE TABLE students (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    age INT,
+    email VARCHAR(100),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE faculty (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    department VARCHAR(100),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE courses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    description TEXT,
+    faculty_id INT,
+    FOREIGN KEY (faculty_id) REFERENCES faculty(id)
+);
+
+CREATE TABLE enrollments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT,
+    course_id INT,
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+
+CREATE TABLE grades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT,
+    course_id INT,
+    grade VARCHAR(5),
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+
+CREATE TABLE attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT,
+    course_id INT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('present', 'absent'),
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+);
+
+-- Disable safe updates
+SET SQL_SAFE_UPDATES = 0;
+
+-- Delete existing data
+DELETE FROM attendance;
+DELETE FROM grades;
+DELETE FROM enrollments;
+DELETE FROM courses;
+DELETE FROM faculty;
+DELETE FROM students;
+DELETE FROM users;
+
+SELECT * FROM users;
+
+INSERT INTO faculty (name, department, user_id) VALUES ('Faculty Name', 'Math', 1);
+SELECT id FROM users WHERE email = 'student1@example.com';
+
+INSERT INTO students (name, age, email, user_id)
+VALUES ('Student Name', 20, 'student1@example.com', 2);
+
+
+SELECT id FROM students WHERE user_id = 2;
+
+SELECT * FROM courses;
+
+
+
+
+
+
